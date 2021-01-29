@@ -1,0 +1,22 @@
+<div class="ms-carousel-items" #itemsContainer >
+  <ng-content></ng-content>
+</div>
+
+<button class="ms-carousel-button ms-carousel-button-prev" [class.ms-disabled]="!hasPrev()"
+        (click)="buttonClick('prev')">
+  <span class="ms-Icon ms-Icon--ChevronLeft"></span>
+</button>
+<button class="ms-carousel-button ms-carousel-button-next" [class.ms-disabled]="!hasNext()"
+    (click)="buttonClick('next')">
+  <span class="ms-Icon ms-Icon--ChevronRight"></span>
+</button>
+
+<div class="ms-carousel-indicator-container" >
+
+  <span class="ms-carousel-indicator"
+        *ngFor="let item of _items; let i=index"
+        [class.active]="_activeIndex == i" (click)="onIndexClick(i)">
+{{i + 1}}
+  </span> {{_event}}
+</div>
+

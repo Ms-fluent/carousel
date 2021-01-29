@@ -1,0 +1,116 @@
+$ms-carousel-button-bgColor: rgba(0, 0, 0, 0.4);
+$ms-carousel-button-hoverBgColor: rgba(0, 0, 0, 0.5);
+$ms-carousel-button-color: #FFF;
+$ms-carousel-button-height: 48px;
+
+$ms-carousel-indicator-height: 8px;
+$ms-carousel-indicator-color: #393939;
+
+
+.ms-carousel {
+  display: block;
+  border: 1px solid red;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  touch-action: pan-y !important;
+}
+
+.ms-carousel.ms-carousel-hidden-button .ms-carousel-button{
+  opacity: 0;
+}
+
+
+.ms-carousel-button {
+  opacity: 1;
+  border: none;
+  border-radius: 50%;
+
+  color: #FFFFFF;
+  background-color: $ms-carousel-button-bgColor;
+
+  height: $ms-carousel-button-height;
+  width: $ms-carousel-button-height;
+  //line-height: $ms-carousel-button-height;
+  //text-align: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  transition: opacity .3s;
+
+  &:hover , &:focus{
+    background-color: $ms-carousel-button-hoverBgColor;
+    outline: none;
+    cursor: pointer;
+  }
+
+  &.ms-disabled {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  &.ms-carousel-button-prev {
+    left: 32px;
+  }
+
+  &.ms-carousel-button-next {
+    right: 32px;
+  }
+
+
+}
+
+
+.ms-carousel-indicator-container {
+  position: absolute;
+  left:50%;
+  border: 1px solid #3399FF;
+  transform: translateX(-50%);
+  bottom: 16px;
+
+  & .ms-carousel-indicator {
+    cursor: pointer;
+    display: inline-block;
+    font-size: 8px;
+    line-height: 8px;
+    text-align: center;
+    margin: 0 2px;
+
+    border: 2px solid $ms-carousel-indicator-color;
+    border-radius: 50%;
+    width: $ms-carousel-indicator-height;
+    height: $ms-carousel-indicator-height;
+
+    color: #FFF;
+
+    &.active {
+      background-color: $ms-carousel-indicator-color;
+    }
+  }
+}
+.ms-carousel-items {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+  border: 1px solid chartreuse;
+  touch-action: pan-y !important;
+
+  position: absolute;
+  left:0;
+  top: 0;
+}
+.ms-carousel-item {
+  display: block;
+  width: 100%;
+  border: 1px solid blue;
+}
