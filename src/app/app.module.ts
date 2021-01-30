@@ -10,7 +10,8 @@ import {MsCarouselModule} from '../ms-carousel';
 @Injectable()
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = {
-    swipe: {direction: hammer.DIRECTION_ALL}
+    swipe: {direction: hammer.DIRECTION_ALL},
+    pan: {direction: hammer.DIRECTION_HORIZONTAL}
   };
 }
 

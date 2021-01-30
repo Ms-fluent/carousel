@@ -1,5 +1,5 @@
 import {
-  AfterContentInit, AfterViewInit,
+  AfterViewInit,
   ChangeDetectionStrategy, ChangeDetectorRef,
   Component,
   ContentChildren,
@@ -11,9 +11,6 @@ import {
 } from '@angular/core';
 import {MS_CAROUSEL_DEFAULT_OPTIONS, MsCarouselDefaultOptions} from './carousel-options';
 import {MsCarouselItem} from './carousel-item';
-import {isChild} from './util';
-
-import * as f from 'hammerjs';
 
 @Component({
   templateUrl: 'carousel.html',
@@ -61,7 +58,11 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
 
   private _width: string;
 
+  /** Id of interval used to slide automatically. */
   private _intervalId: number;
+
+  /** Id of timeout used to hide slide buttons. */
+  private _hideButtonTimeOutId: number;
 
   @ContentChildren(forwardRef(() => MsCarouselItem))
   _items: QueryList<MsCarouselItem>;
@@ -71,14 +72,31 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
 
   hideButtons: boolean = true;
 
-  _activeIndex: number = 0;
-  _translateX: number = 0;
+  /** The index of the active slide */
+  get activeIndex(): number {
+    return this._activeIndex;
+  }
 
-  private _panDirection: 'left' | 'right';
+  private _activeIndex: number = 0;
 
-  private resizeObserver = new ResizeObserver(entries => {
+  /** The current translation of the slides container. */
+  get translateX(): number {
+    return this._translateX;
+  }
+
+  private _translateX: number = 0;
+
+  /** Tells if a current pan is running. */
+  private _isPan: boolean = false;
+  private _panStartWidth: number = 0;
+  private _panStartOrigin: { x: number, y: number };
+  private _panStartTranslate: number = 0;
+  private _panStartDirection: number;
+  private _panPercent: number = null;
+
+
+  private _resizeObserver = new ResizeObserver(entries => {
     const width = (entries[0].target as HTMLElement).offsetWidth;
-    const translate = -width * this._activeIndex;
     this.computeWidth(width);
   });
 
@@ -107,14 +125,13 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
       }
     }
 
-    this.resizeObserver.observe(this.host());
-    //this.containerHost().style.width = this.containerWidth() + 'px';
+    this._resizeObserver.observe(this.host());
     this.startInterval();
 
   }
 
   ngOnDestroy(): void {
-    this.resizeObserver.disconnect();
+    this._resizeObserver.disconnect();
   }
 
   computeWidth(width: number) {
@@ -135,43 +152,32 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
   }
 
   @HostListener('swipeleft', ['$event'])
-  onswipeleft(e: HammerInput) {
-    console.log('swipeleft: ' + this._isPan);
-
+  onswipeleft() {
     if (this._isPan && this._panPercent < -0.5) {
       return;
     }
     if (this.hasNext()) {
-      this.next();
+      this.next().then();
       this.refreshInterval();
     }
   }
 
   @HostListener('swiperight', ['$event'])
   onswiperight() {
-    if(this._isPan && this._panPercent > 0.5) {
+    if (this._isPan && this._panPercent > 0.5) {
       return;
     }
     if (this.hasPrev()) {
-      this.prev();
+      this.prev().then();
       this.refreshInterval();
     }
   }
-
-  _isPan: boolean = false;
-  _panStartWidth: number = 0;
-  _panStartLeft: number = 0;
-  _panStartOrigin: { x: number, y: number };
-  _panStartTranslate: number = 0;
-  _panStartDirection: number;
-  _panPercent: number = null;
 
   @HostListener('panstart', ['$event'])
   onpanstart(e: any) {
     clearInterval(this._intervalId);
     this._isPan = true;
     this._panStartWidth = this.host().offsetWidth;
-    this._panStartLeft = this.host().getBoundingClientRect().left;
     this._panStartOrigin = e.center;
     this._panStartTranslate = this._translateX;
     this._panStartDirection = e.direction;
@@ -179,31 +185,38 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
 
   @HostListener('pan', ['$event'])
   onpan(e: HammerInput) {
+    if((e.direction === 2 || e.direction === 4) && e.direction !== this._panStartDirection) {
+      this._panStartDirection = e.direction;
+      this._panStartOrigin = e.center;
+      this._panStartTranslate = this._translateX;
+      console.log('change direction: ' + e.center.x)
+    }
     const delta = e.center.x - this._panStartOrigin.x;
 
     const translateX = this._panStartTranslate + delta;
 
-    const maxTranslate = this._panStartWidth * (this.length() - 1);
+    const minTranslate = -this._panStartWidth * (this.length() - 1);
+    const maxTranslate = 0;
 
-    if (translateX < 0 && translateX > -maxTranslate) {
+    if (translateX < maxTranslate && translateX > minTranslate) {
       this._translateX = translateX;
       this._panPercent = (this._translateX - this._panStartTranslate) / this._panStartWidth;
-      this.containerHost().style.transform = `translateX(${this._translateX}px)`;
+      this.containerHost().style.transform = `translateX(${this.translateX}px)`;
     }
   }
 
   @HostListener('panend', ['$event'])
-  onpanend(e: any | HammerInput) {
-
+  onpanend() {
     if (this._panPercent > 0.5) {
-      this.prev();
+      this.prev().then();
     } else if (this._panPercent < -0.5) {
-      this.next();
+      this.next().then();
     } else {
-      this.activateIndex(this._activeIndex);
+      this.activateIndex(this.activeIndex).then();
     }
     this._isPan = false;
     this._panPercent = null;
+    this.refreshInterval();
   }
 
   @HostListener('pancancel', ['$event'])
@@ -212,10 +225,9 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
     this._panPercent = null;
   }
 
-  _hideButtonTimeOutId: number;
 
   @HostListener('mousemove', ['$event'])
-  onmousemove(event: MouseEvent) {
+  onmousemove() {
     if (1) {
       this.hideButtons = false;
       clearTimeout(this._hideButtonTimeOutId);
@@ -229,15 +241,15 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
 
   buttonClick(direction: 'prev' | 'next') {
     if (direction === 'prev') {
-      this.prev();
+      this.prev().then();
     } else {
-      this.next();
+      this.next().then();
     }
     this.refreshInterval();
   }
 
   onIndexClick(index: number) {
-    this.activateIndex(index);
+    this.activateIndex(index).then();
     this.refreshInterval();
   }
 
@@ -245,7 +257,6 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
     const x = this.getTranslation(index);
 
     this._activeIndex = index;
-    // this.containerHost().style.transform = `translate(${x}px, 0)`;
     this._changeDetectorRef.markForCheck();
     return new Promise<void>(resolve => {
       this.containerHost().animate(
@@ -260,19 +271,20 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
         resolve();
       };
     });
-    // return Promise.resolve();
   }
 
   next(): Promise<void> {
     if (this.hasNext()) {
       return this.activateIndex(this._activeIndex + 1);
     }
+    return Promise.resolve();
   }
 
   prev(): Promise<void> {
     if (this.hasPrev()) {
       return this.activateIndex(this._activeIndex - 1);
     }
+    return Promise.resolve();
   }
 
 
@@ -295,7 +307,7 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
   }
 
   refreshInterval(): void {
-    clearInterval(this._intervalId);
+    this.stopInterval();
     this.startInterval();
   }
 
