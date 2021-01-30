@@ -59,10 +59,10 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
   private _width: string;
 
   /** Id of interval used to slide automatically. */
-  private _intervalId: number;
+  private _intervalId: any;
 
   /** Id of timeout used to hide slide buttons. */
-  private _hideButtonTimeOutId: number;
+  private _hideButtonTimeOutId: any;
 
   @ContentChildren(forwardRef(() => MsCarouselItem))
   _items: QueryList<MsCarouselItem>;
@@ -127,7 +127,6 @@ export class MsCarousel implements AfterViewInit, OnDestroy {
 
     this._resizeObserver.observe(this.host());
     this.startInterval();
-
   }
 
   ngOnDestroy(): void {

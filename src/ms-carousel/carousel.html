@@ -4,18 +4,22 @@
 
 <button class="ms-carousel-button ms-carousel-button-prev" [class.ms-disabled]="!hasPrev()"
         (click)="buttonClick('prev')">
-  <span class="ms-Icon ms-Icon--ChevronLeft"></span>
+  <svg width="22" height="22">
+    <path d="M1533 93l-90 -90l-1022 1021l1022 1021l90 -90l-930 -931l930 -931v0z" transform="scale(0.01, 0.01)"/>
+  </svg>
 </button>
 <button class="ms-carousel-button ms-carousel-button-next" [class.ms-disabled]="!hasNext()"
     (click)="buttonClick('next')">
-  <span class="ms-Icon ms-Icon--ChevronRight"></span>
+  <svg width="22" height="22">
+    <path d="M515 93l930 931l-930 931l90 90l1022 -1021l-1022 -1021l-90 90v0z" transform="scale(0.01, 0.01)"/>
+  </svg>
 </button>
 
 <div class="ms-carousel-indicator-container" >
 
   <span class="ms-carousel-indicator"
         *ngFor="let item of _items; let i=index"
-        [class.active]="_activeIndex == i" (click)="onIndexClick(i)">
+        [class.active]="activeIndex == i" (click)="onIndexClick(i)">
 {{i + 1}}
   </span> {{_event}}
 </div>

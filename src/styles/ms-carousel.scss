@@ -1,10 +1,10 @@
-$ms-carousel-button-bgColor: rgba(0, 0, 0, 0.4);
-$ms-carousel-button-hoverBgColor: rgba(0, 0, 0, 0.5);
-$ms-carousel-button-color: #FFF;
-$ms-carousel-button-height: 48px;
+$ms-carousel-button-bgColor: rgba(0, 0, 0, 0.4) !default;
+$ms-carousel-button-hoverBgColor: rgba(0, 0, 0, 0.5) !default;
+$ms-carousel-button-color: #FFF !default;
+$ms-carousel-button-height: 48px !default;
 
-$ms-carousel-indicator-height: 8px;
-$ms-carousel-indicator-color: #393939;
+$ms-carousel-indicator-height: 8px !default;
+$ms-carousel-indicator-color: #393939 !default;
 
 
 .ms-carousel {
@@ -65,6 +65,9 @@ $ms-carousel-indicator-color: #393939;
     right: 32px;
   }
 
+  & path {
+    fill: $ms-carousel-button-color;
+  }
 
 }
 
